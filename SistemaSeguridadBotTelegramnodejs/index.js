@@ -2,7 +2,17 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const token = '2088882507:AAE46TBIT8rFzXsdf84pcGHem8uHcl06lvY';
 
-const bot = new TelegramBot(token, {polling: true});
+var opt = {polling: true};
+
+const bot = new TelegramBot(token, opt);
+
+const SerialPort = require('serialport')
+var MiPuerto = new SerialPort('/dev/ttyACM7', {
+  baudRate: 115200,
+  autoOpen: true
+});
+
+var id = 1422002215;
 
 bot.onText(/\/echo (.+)/, (msg, match) => {
 
@@ -15,11 +25,40 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
 bot.on('message', (msg) => {
   const chatId = msg.chat.id;
   var mensaje = msg.text;
+  console.log("Este es el ID del chat " + chatId);
 
-bot.sendMessage(chatId, 'Hola soy SeggurBot y sere tu mano derecha...');
 
-  if (mensaje == "Hola") {
-    console.log("Hola, como te va?...");
-    bot.sendMessage(chatId, 'Hola, como te va?...');
+  if (mensaje == "encender") {
+    console.log("Encendido");
+    bot.sendMessage(chatId, 'Sistema Activado');
+    MiPuerto.write("H");
   }
+  else if (mensaje == "apagar") {
+    console.log("Apagando");
+    bot.sendMessage(chatId, 'Sistema Desactivado');
+    MiPuerto.write("L");
+  }
+});
+
+MiPuerto.setEncoding('utf8');
+MiPuerto.on('data',function(data){
+
+  console.log("Lo que entro es "+ data);
+
+    if (data[0] == "G") {
+      bot.sendMessage(id, 'Se ha detectado el GAS en al cocina');
+    }
+
+    if (data[0] == "M") {
+      bot.sendMessage(id, 'Se ha detectado el movimiento de la habitacion principal');
+    }
+
+    if (data[0] == "F") {
+      bot.sendMessage(id, 'Se ha detectado fuego en la sala principal');
+    }
+
+    if (data[0] == "P") {
+      bot.sendMessage(id, 'Se abrió la puerta principal');
+    }
+
 });
